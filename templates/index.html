@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Save a Website to ZIP</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle at right, #fffbe9, #fff);
+      margin: 0;
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 700px;
+      padding: 30px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      width: 90%;
+      padding: 12px 16px;
+      border: 2px solid #f0c040;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      margin-bottom: 20px;
+    }
+
+    .options {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 0.95rem;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 6px;
+    }
+
+    button {
+      background-color: #fdd835;
+      color: #111;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #fbc02d;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-weight: 600;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SAVE A WEBSITE TO ZIP</h1>
+    <input id="urlInput" type="text" placeholder="https://example.com/" />
+
+    <div class="options">
+      <label><input type="checkbox" id="renameAssets">Rename all assets</label>
+      <label><input type="checkbox" id="simplified">Simplified download</label>
+      <label><input type="checkbox" id="mobileVersion">Copy mobile version</label>
+      <label><input type="checkbox" id="saveStructure">Save website structure</label>
+    </div>
+
+    <button id="saveBtn">Save</button>
+
+    <div class="status" id="statusMsg"></div>
+  </div>
+
+  <script>
+    document.getElementById("saveBtn").addEventListener("click", async function() {
+      const url = document.getElementById("urlInput").value.trim();
+      const status = document.getElementById("statusMsg");
+
+      if (!url) {
+        status.style.color = "red";
+        status.textContent = "⚠️ Please enter a valid URL.";
+        return;
+      }
+
+      status.style.color = "#333";
+      status.textContent = "⏳ Preparing your ZIP... Please wait.";
+
+      const formData = new FormData();
+      formData.append("url", url);
+
+      try {
+        const response = await fetch("/download", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error("Failed to generate ZIP");
+
+        const blob = await response.blob();
+        const a = document.createElement("a");
+        a.href = window.URL.createObjectURL(blob);
+        a.download = "website.zip";
+        a.click();
+
+        status.style.color = "green";
+        status.textContent = "✅ Download complete!";
+      } catch (e) {
+        status.style.color = "red";
+        status.textContent = "❌ Error: " + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
